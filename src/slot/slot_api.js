@@ -92,8 +92,7 @@ export function saveRewardsCache(results) {
  */
 export function isRewardReady() {
     const cache = getRewardsCache();
-    const playCount = getPlayCount();
-    return cache && cache.length > playCount;
+    return cache && cache.length > 0;
 }
 
 /**
@@ -103,12 +102,14 @@ export function getNextReward() {
     const cache = getRewardsCache();
     const playCount = getPlayCount();
     
-    if (!cache || playCount >= cache.length) {
-        console.error('[SlotAPI] No reward available at index:', playCount);
+    if (!cache || cache.length === 0) {
+        console.error('[SlotAPI] No rewards available in cache');
         return null;
     }
     
-    return cache[playCount];
+    // ถ้า playCount เกินจำนวนที่มี ให้ใช้วิธี modulo เพื่อวนกลับมาอันแรก (หมุนได้ตลอด)
+    const index = playCount % cache.length;
+    return cache[index];
 }
 
 /**

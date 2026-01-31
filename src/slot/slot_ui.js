@@ -302,17 +302,10 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
                 return;
             }
 
-            // Check limit BEFORE sending API (User Request)
-            let videoAreaRef = overlay.querySelector('#slot-video-area');
+            // Check limit BEFORE sending API (User Request: แสดง popup แต่ยังกดได้)
             if (getPlayCount() >= 3) {
-                 if (videoAreaRef) {
-                     videoAreaRef.innerHTML = `
-                        <p style="color: #e94560; font-size: 16px; font-weight: bold; margin-top: 15px;">
-                            ท่านใช้สิทธิ์ครบ 3 ครั้งแล้ว ไม่สามารถส่งข้อมูลได้อีก
-                        </p>
-                     `;
-                 }
-                 return;
+                showNoPlayPopup();
+                return;
             }
             
             saveBtn.disabled = true;
