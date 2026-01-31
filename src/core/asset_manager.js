@@ -92,21 +92,28 @@ export class AssetManager {
         const gltf = await this.gltfLoader.loadAsync(url);
         const model = gltf.scene;
 
-        // ค้นหาและเล่น Animation (Default: เล่นตัวแรก)
+        // ตรวจสอบว่าจะเล่น Animation ทันทีหรือไม่ (Default: true)
+        const shouldAnimate = asset.asset_animation !== false;
+
         if (gltf.animations && gltf.animations.length > 0) {
             const mixer = new THREE.AnimationMixer(model);
             const action = mixer.clipAction(gltf.animations[0]);
-            action.play();
             
-            // เก็บ mixer ไว้เพื่อให้ update() มาเรียกใช้
+            if (shouldAnimate) {
+                action.play();
+            }
+            
+            // เก็บ mixer ไว้เพื่อให้ update() มาเรียกใช้ (แม้ยังไม่เล่น ก็เก็บไว้รอ Action ในอนาคต)
             this.mixers.add(mixer);
             model.userData.mixer = mixer;
+            model.userData.action = action; // เก็บ action ไว้ด้วยเพื่อให้สั่ง play/stop จากภายนอกง่ายๆ
         }
 
         model.scale.set(...asset.scale);
         this.applyTransform(model, asset);
         return model;
     }
+
 
     async createAudio(url, asset) {
         const audio = new Audio(url);

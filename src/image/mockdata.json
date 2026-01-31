@@ -33,10 +33,11 @@
                     {
                       "src": "./image/assets/dragon.glb",
                       "type": "3D Model",
-                      "scale": [0.5, 0.5, 0.5],
+                      "scale": [0.2, 0.2, 0.2],
+                      "asset_animation": true, 
                       "opacity": 1,
                       "asset_id": "asset_ed011595-7fe4-4d6d-b09e-5e8b7170afb1",
-                      "position": [0, 0, 0],
+                      "position": [0, -0.5, 0],
                       "rotation": [0, 0, 0],
                       "asset_name": "DEEbase_basic_pbr.glb",
                       "asset_image": ""
@@ -47,7 +48,7 @@
                       "scale": [0.5, 0.5, 0.5],
                       "opacity": 1,
                       "asset_id": "asset_ba338b1d-fcb4-4fcc-a223-de7268e10826",
-                      "position": [0, -0.22960551561607123, 0],
+                      "position": [0.5, 0, 0],
                       "rotation": [0, 0, 0],
                       "asset_name": "KoratCharacter.png",
                       "asset_image": "https://supabase.wemear.com/storage/v1/object/public/assets/images/KoratCharacter.png"
