@@ -25,12 +25,12 @@ const start = async () => {
     const slotConfig = config.info.tracking_modes.slot;
     if (!slotConfig) return;
 
-    // Check Play Limit IMMEDIATELY - No 3D if limit reached
-    if (!canPlay()) {
-        console.log('Play limit reached, showing popup instead of AR');
-        showNoPlayPopup();
-        return;
-    }
+    // Check Play Limit REMOVED - User wants to enter anyway
+    // if (!canPlay()) {
+    //     console.log('Play limit reached, showing popup instead of AR');
+    //     showNoPlayPopup();
+    //     return;
+    // }
 
     // 2. Initialize Core Managers
     const assetManager = new AssetManager();
@@ -96,8 +96,10 @@ const start = async () => {
     const mouse = new THREE.Vector2();
 
     const handleClick = (event) => {
-        // Prevent interaction if any popup is open
-        if (document.querySelector('.slot-overlay') || document.querySelector('.no-play-overlay')) {
+        // Prevent interaction if any popup is open or video is playing (Fix ghost clicks)
+        if (document.querySelector('.slot-overlay') || 
+            document.querySelector('.no-play-overlay') || 
+            document.querySelector('.video-container')) {
             return;
         }
 

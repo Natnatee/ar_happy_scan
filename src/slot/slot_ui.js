@@ -292,23 +292,26 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
         saveBtn.addEventListener('click', async () => {
             const nameInput = overlay.querySelector('#slot-name-input');
             const name = nameInput?.value.trim();
-            const videoArea = overlay.querySelector('#slot-video-area');
             
             if (name) localStorage.setItem('slot_username', name);
             
             if (!name) {
                 nameInput.style.borderColor = '#e94560';
                 nameInput.placeholder = 'กรุณากรอกชื่อ!';
+                nameInput.placeholder = 'กรุณากรอกชื่อ!';
                 return;
             }
 
-            // Check limit BEFORE sending API
+            // Check limit BEFORE sending API (User Request)
+            let videoAreaRef = overlay.querySelector('#slot-video-area');
             if (getPlayCount() >= 3) {
-                 videoArea.innerHTML = `
-                    <p style="color: #e94560; font-size: 16px; font-weight: bold; margin-top: 15px;">
-                        ท่านใช้สิทธิ์ครบ 3 ครั้งแล้ว ไม่สามารถส่งข้อมูลได้อีก
-                    </p>
-                 `;
+                 if (videoAreaRef) {
+                     videoAreaRef.innerHTML = `
+                        <p style="color: #e94560; font-size: 16px; font-weight: bold; margin-top: 15px;">
+                            ท่านใช้สิทธิ์ครบ 3 ครั้งแล้ว ไม่สามารถส่งข้อมูลได้อีก
+                        </p>
+                     `;
+                 }
                  return;
             }
             
@@ -322,6 +325,7 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
             // Re-check status after increment
             const currentCount = getPlayCount();
             const realRemaining = 3 - currentCount;
+            const videoArea = overlay.querySelector('#slot-video-area');
             
             if (realRemaining > 0 && videoUrl) {
                 videoArea.innerHTML = `

@@ -36,11 +36,11 @@ export class SlotGame {
         // เริ่มโหลด rewards แบบ async (ไม่ await)
         this.loadingPromise = this.loadRewardsAsync();
         
-        // เช็คว่ายังเล่นได้ไหม (ใช้ local play count)
-        if (!canPlay()) {
-            showNoPlayPopup();
-            return false;
-        }
+        // เช็คว่ายังเล่นได้ไหม (ใช้ local play count) -> User request: ให้เล่นได้ตลอด
+        // if (!canPlay()) {
+        //     showNoPlayPopup();
+        //     return false;
+        // }
         
         return true;
     }
@@ -97,11 +97,11 @@ export class SlotGame {
             return;
         }
 
-        // เช็คสิทธิ์อีกครั้ง
-        if (!canPlay()) {
-            showNoPlayPopup();
-            return;
-        }
+        // เช็คสิทธิ์อีกครั้ง -> User request: ให้เล่นได้ตลอด ค่อยไปเช็คตอนกด Save
+        // if (!canPlay()) {
+        //     showNoPlayPopup();
+        //     return;
+        // }
 
         this.isPlaying = true;
         console.log('[SlotGame] Starting slot spin...');
