@@ -1,14 +1,18 @@
 /**
  * Slot Game Logic - จัดการ Animation และ Flow เกม
+ * ปรับปรุง: ใช้ rewards จาก cache, นับ play count เอง
  */
 
 import * as THREE from 'three';
 import { 
     getOrCreateUID, 
-    getRandomRewardAndVideo, 
+    fetchRewardsFromServer, 
     updateRow, 
     getUserById,
-    canPlay 
+    canPlay,
+    isRewardReady,
+    getNextReward,
+    incrementPlayCount
 } from './slot_api.js';
 import { showResultPopup, showNoPlayPopup } from './slot_ui.js';
 
@@ -18,24 +22,67 @@ export class SlotGame {
         this.currentResult = null;
         this.videoUrl = null;
         this.uid = getOrCreateUID();
+        this.isRewardsLoaded = false;
+        this.loadingPromise = null;
     }
 
     /**
-     * เริ่มต้นเกม - เช็คสิทธิ์ก่อน
+     * เริ่มต้นเกม - เช็คสิทธิ์ + โหลด rewards แบบ async
+     * ไม่ต้องรอ API เสร็จ (ให้กล้องขึ้นก่อน)
      */
     async init() {
         console.log('[SlotGame] Initializing with UID:', this.uid);
         
-        // ดึงข้อมูล user จาก server
-        await getUserById(this.uid);
+        // เริ่มโหลด rewards แบบ async (ไม่ await)
+        this.loadingPromise = this.loadRewardsAsync();
         
-        // เช็คว่ายังเล่นได้ไหม
+        // เช็คว่ายังเล่นได้ไหม (ใช้ local play count)
         if (!canPlay()) {
             showNoPlayPopup();
             return false;
         }
         
         return true;
+    }
+
+    /**
+     * โหลด rewards จาก server แบบ async
+     */
+    async loadRewardsAsync() {
+        try {
+            // ถ้ายังมี cache เหลือพอใช้ ไม่ต้องยิงใหม่
+            if (isRewardReady()) {
+                console.log('[SlotGame] Using cached rewards');
+                this.isRewardsLoaded = true;
+                return;
+            }
+
+            // ยิง API ดึง rewards 3 ตัว
+            console.log('[SlotGame] Fetching rewards from server...');
+            const result = await fetchRewardsFromServer();
+            
+            if (result.ok) {
+                this.isRewardsLoaded = true;
+                console.log('[SlotGame] Rewards loaded successfully');
+            } else {
+                console.error('[SlotGame] Failed to load rewards:', result.error);
+            }
+        } catch (error) {
+            console.error('[SlotGame] Error loading rewards:', error);
+        }
+    }
+
+    /**
+     * รอให้ rewards โหลดเสร็จ (ถ้ายังไม่เสร็จ)
+     */
+    async waitForRewards() {
+        if (this.isRewardsLoaded) return true;
+        
+        if (this.loadingPromise) {
+            await this.loadingPromise;
+        }
+        
+        return isRewardReady();
     }
 
     /**
@@ -60,20 +107,29 @@ export class SlotGame {
         console.log('[SlotGame] Starting slot spin...');
 
         try {
-            // 1. เรียก API สุ่มผล
-            const result = await getRandomRewardAndVideo();
+            // 1. รอ rewards ถ้ายังไม่มี
+            const hasRewards = await this.waitForRewards();
             
-            if (!result.ok) {
-                console.error('[SlotGame] API error:', result);
+            if (!hasRewards) {
+                console.error('[SlotGame] No rewards available');
                 this.isPlaying = false;
                 return;
             }
 
-            this.currentResult = result.reward;
-            this.videoUrl = result.video;
+            // 2. ดึง reward ถัดไปจาก cache
+            const rewardData = getNextReward();
+            
+            if (!rewardData) {
+                console.error('[SlotGame] Failed to get next reward');
+                this.isPlaying = false;
+                return;
+            }
 
-            // 2. หา animation timing จาก tier
-            const tier = result.reward.tier; // win, fail1, fail2
+            this.currentResult = rewardData.reward;
+            this.videoUrl = rewardData.video;
+
+            // 3. หา animation timing จาก tier
+            const tier = rewardData.reward.tier; // win, fail1, fail2
             const animMap = actionConfig.animation_map;
             
             if (!animMap || !animMap[tier]) {
@@ -85,10 +141,13 @@ export class SlotGame {
             const timing = animMap[tier];
             console.log(`[SlotGame] Playing ${tier} animation:`, timing);
 
-            // 3. เล่น animation
+            // 4. เพิ่ม play count ก่อนเล่น animation
+            incrementPlayCount();
+
+            // 5. เล่น animation
             await this.playAnimation(object, timing.start_time, timing.end_time);
 
-            // 4. แสดง popup ผล
+            // 6. แสดง popup ผล
             this.showResult();
 
         } catch (error) {

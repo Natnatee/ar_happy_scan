@@ -58,10 +58,28 @@ response
 {
     "status": 200,
     "ok": true,
-    "reward": {
-        "tier": "fail2",
-        "value": "ขนม 5 บาท"
-    },
-    "video": "https://screens.omg.group/play/libraryitem/13AD856566B181"
+    "results": [
+        {
+            "reward": {
+                "tier": "win",
+                "value": "กาแฟสตาบัค1กล่อง"
+            },
+            "video": "https://screens.omg.group/play/libraryitem/13AD856566B181"
+        },
+        {
+            "reward": {
+                "tier": "fail2",
+                "value": "ขนม 5 บาท"
+            },
+            "video": "https://screens.omg.group/play/libraryitem/13AD856566B181"
+        },
+        {
+            "reward": {
+                "tier": "fail2",
+                "value": "ขนม 5 บาท"
+            },
+            "video": "https://screens.omg.group/play/libraryitem/13AD856566B181"
+        }
+    ]
 }
 

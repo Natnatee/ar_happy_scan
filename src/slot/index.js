@@ -28,15 +28,11 @@ const start = async () => {
     const sceneManagers = [];
     const currentSceneIndices = [];
 
-    // 3. Initialize Slot Game
+    // 3. Initialize Slot Game (ไม่ต้องรอ - ให้กล้องขึ้นก่อน)
     const slotGame = new SlotGame();
-    const canPlay = await slotGame.init();
-    
-    // ถ้าหมดสิทธิ์ ไม่ต้องโหลด AR
-    if (!canPlay) {
-        console.log('[SlotPage] No plays remaining');
-        return;
-    }
+    // เรียก init แบบ async (ไม่ await) เพื่อให้กล้องขึ้นก่อน
+    slotGame.init();
+
 
     // 4. Prepare MindAR
     const mindFileBlob = await use_index_db(slotConfig.mindFile.mind_src);

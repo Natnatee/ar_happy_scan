@@ -2,7 +2,7 @@
  * Slot Game UI - Popup และ Video Player
  */
 
-import { getRewardCount, canPlay } from './slot_api.js';
+import { getPlayCount, canPlay } from './slot_api.js';
 
 /**
  * สร้าง CSS สำหรับ UI
@@ -217,7 +217,7 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
     injectStyles();
     
     const isWin = result.tier === 'win';
-    const remainingPlays = 3 - getRewardCount() - 1; // -1 เพราะเพิ่งเล่นไป
+    const remainingPlays = 3 - getPlayCount(); // playCount ถูกเพิ่มไปแล้วก่อนแสดง popup
     const canWatchVideo = remainingPlays > 0 && videoUrl;
     
     const overlay = document.createElement('div');
