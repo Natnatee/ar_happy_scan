@@ -31,7 +31,12 @@ const start = async () => {
     const mindarThree = new MindARThree({
         container: document.querySelector("#container"),
         imageTargetSrc: mindFileUrl,
+        filterMinCF: 0.001,
+        filterBeta: 0,
+        warmupTolerance: 15,
+        missTolerance: 15,
     });
+
 
     const { renderer, scene, camera } = mindarThree;
 
