@@ -5,6 +5,7 @@ import { use_index_db } from '../core/index_db';
 import { AssetManager } from '../core/asset_manager';
 import { SceneManager } from '../core/scene_manager';
 import { UIManager } from '../core/ui_manager';
+import { ActionManager } from '../core/action_manager';
 import '../styles/main.css';
 
 const start = async () => {
@@ -98,7 +99,10 @@ const start = async () => {
         sceneManagers.push(sceneMgr);
     }
 
-    // 6. Start Engine
+    // 6. Interaction Setup
+    const actionManager = new ActionManager(scene, camera);
+
+    // 7. Start Engine
     try {
         await mindarThree.start();
         

@@ -125,10 +125,37 @@ export class AssetManager {
         return dummy;
     }
 
+    /**
+     * สร้าง Hit Plane (โปร่งใส) เพื่อขยายพื้นที่คลิกและช่วยให้ Raycaster ทำงานง่ายขึ้น
+     */
+    addDebugPlane(object) {
+        // สร้าง Plane ขนาด 1x1
+        const geometry = new THREE.PlaneGeometry(1, 1);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0xff0000, 
+            side: THREE.DoubleSide, 
+            transparent: true, 
+             opacity: 0 // มองไม่เห็น แต่ Raycast โดน
+        });
+        const plane = new THREE.Mesh(geometry, material);
+        plane.name = "INTERACTION_HIT_BOX"; // เปลี่ยนชื่อให้สื่อความหมาย
+        
+        // ขยับมาข้างหน้านิดนึง
+        plane.position.z = 0.1; 
+        
+        object.add(plane);
+    }
+
     applyTransform(object, asset) {
         object.position.set(...asset.position);
         object.rotation.set(...asset.rotation);
         object.name = asset.asset_id;
+        
+        if (asset.action) {
+            object.userData.interaction = asset.action;
+            // สร้าง Hit Box เสมอถ้ามี Interaction
+            this.addDebugPlane(object);
+        }
     }
 
     /**
