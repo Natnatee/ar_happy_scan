@@ -31,15 +31,15 @@
                 {
                   "assets": [
                     {
-                      "src": "./image/assets/dragon.glb",
+                      "src": "./image/assets/slot_machine.glb",
                       "type": "3D Model",
-                      "scale": [0.2, 0.2, 0.2],
+                      "scale": [2, 2, 2],
                       "asset_animation": false, 
                       "opacity": 1,
                       "asset_id": "asset_ed011595-7fe4-4d6d-b09e-5e8b7170afb1",
-                      "position": [0, -0.5, 0],
+                      "position": [0, 0, 0],
                       "rotation": [0, 0, 0],
-                      "asset_name": "DEEbase_basic_pbr.glb",
+                      "asset_name": "blue_eye.glb",
                       "asset_image": "",
                       "action": { "click":{
                         "asset_animation": true 
