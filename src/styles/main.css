@@ -1,0 +1,49 @@
+/* Global Styles */
+:root {
+  --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --color-bg: #ffffff;
+  --color-text: #213547;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  overflow: hidden; /* Prevent scrolling in AR */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.loading-container {
+  text-align: center;
+  width: 80%;
+  max-width: 400px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #eee;
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+#progress-fill {
+  width: 0%;
+  height: 100%;
+  background: #007bff;
+  transition: width 0.3s ease;
+}
+
+#detail-text {
+  font-size: 0.8rem;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

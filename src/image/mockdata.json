@@ -1,0 +1,100 @@
+[
+  {
+    "project_id": "ec68cbe4-98ee-46bd-8447-e8b34eafa571",
+    "info": {
+      "tracking_modes": {
+        "image": {
+          "tracks": [
+            {
+              "scenes": [
+                {
+                  "assets": [
+                    {
+                      "src": "https://supabase.wemear.com/storage/v1/object/public/assets/images/Landscape-Color.jpg",
+                      "type": "Image",
+                      "scale": [1, 1, 1],
+                      "opacity": 1,
+                      "asset_id": "asset_7cdfd845-b320-4808-ade8-142d88e8ce0e",
+                      "position": [0, 0, 0],
+                      "rotation": [0, 0, 0],
+                      "asset_name": "Landscape-Color.jpg",
+                      "asset_image": "https://supabase.wemear.com/storage/v1/object/public/assets/images/Landscape-Color.jpg"
+                    }
+                  ],
+                  "scene_id": "S1"
+                }
+              ],
+              "track_id": "T1"
+            },
+            {
+              "scenes": [
+                {
+                  "assets": [
+                    {
+                      "src": "https://supabase.wemear.com/storage/v1/object/public/assets/3d/DEEbase_basic_pbr.glb",
+                      "type": "3D Model",
+                      "scale": [0.5, 0.5, 0.5],
+                      "opacity": 1,
+                      "asset_id": "asset_ed011595-7fe4-4d6d-b09e-5e8b7170afb1",
+                      "position": [0, 0, 0],
+                      "rotation": [0, 0, 0],
+                      "asset_name": "DEEbase_basic_pbr.glb",
+                      "asset_image": ""
+                    },
+                    {
+                      "src": "https://supabase.wemear.com/storage/v1/object/public/assets/images/KoratCharacter.png",
+                      "type": "Image",
+                      "scale": [0.5, 0.5, 0.5],
+                      "opacity": 1,
+                      "asset_id": "asset_ba338b1d-fcb4-4fcc-a223-de7268e10826",
+                      "position": [0, -0.22960551561607123, 0],
+                      "rotation": [0, 0, 0],
+                      "asset_name": "KoratCharacter.png",
+                      "asset_image": "https://supabase.wemear.com/storage/v1/object/public/assets/images/KoratCharacter.png"
+                    }
+                  ],
+                  "scene_id": "S1"
+                },
+                {
+                  "assets": [
+                    {
+                      "src": "https://supabase.wemear.com/storage/v1/object/public/assets/videos/media.mp4",
+                      "type": "Video",
+                      "scale": [0.5, 0.5, 0.5],
+                      "opacity": 1,
+                      "asset_id": "asset_2848a377-437b-420c-9e4c-a94b05b3c280",
+                      "position": [0, 0, 0],
+                      "rotation": [0, 0, 0],
+                      "asset_name": "media.mp4",
+                      "asset_image": ""
+                    }
+                  ],
+                  "scene_id": "S2"
+                }
+              ],
+              "track_id": "T2"
+            }
+          ],
+          "mindFile": {
+            "mind_id": "c5c999a0-a58e-4d62-b936-1306ef089c5e",
+            "mind_src": "https://supabase.wemear.com/storage/v1/object/public/assets/mind/Test_Scene",
+            "mind_name": "Test_Scene",
+            "mind_image": {
+              "T1": "https://supabase.wemear.com/storage/v1/object/public/assets/mind/images/Test_Scene_T1",
+              "T2": "https://supabase.wemear.com/storage/v1/object/public/assets/mind/images/Test_Scene_T2"
+            }
+          },
+          "setting": {
+            "background": "./background_default.jpg",
+            "icon": "./icon_default.jpg",
+            "scene_button": {
+              "show": true,
+              "src_left": "./assets_face_item/left-arrow-arrow-3d-illustration-png.png",
+              "src_right": "./assets_face_item/right-arrow-arrow-3d-illustration-png.png"
+            }
+          }
+        }
+      }
+    }
+  }
+]
