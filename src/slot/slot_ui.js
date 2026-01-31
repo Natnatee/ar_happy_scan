@@ -184,10 +184,32 @@ function injectStyles() {
             color: #888;
             font-size: 16px;
         }
+
+        .popup-close-x {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+            transition: color 0.3s;
+            z-index: 10;
+        }
+
+        .popup-close-x:hover {
+            color: #e94560;
+        }
     `;
     document.head.appendChild(style);
 }
 
+/**
+ * แสดง Popup หมดสิทธิ์
+ */
 /**
  * แสดง Popup หมดสิทธิ์
  */
@@ -197,13 +219,29 @@ export function showNoPlayPopup() {
     const overlay = document.createElement('div');
     overlay.className = 'no-play-overlay';
     overlay.innerHTML = `
-        <div class="no-play-popup">
+        <div class="no-play-popup" style="position: relative;">
+            <button class="popup-close-x" id="no-play-close-btn">×</button>
             <h2>😢 หมดสิทธิ์แล้ว</h2>
             <p>คุณได้รับรางวัลครบ 3 ครั้งแล้ว</p>
             <p>ขอบคุณที่ร่วมกิจกรรม!</p>
         </div>
     `;
     document.body.appendChild(overlay);
+
+    // Event: ปุ่มปิด (X)
+    const closeBtn = overlay.querySelector('#no-play-close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            overlay.remove();
+        });
+    }
+
+    // Auto close after 3 seconds
+    setTimeout(() => {
+        if (document.body.contains(overlay)) {
+            overlay.remove();
+        }
+    }, 3000);
 }
 
 /**
@@ -219,36 +257,30 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
     const isWin = result.tier === 'win';
     const remainingPlays = 3 - getPlayCount(); // playCount ถูกเพิ่มไปแล้วก่อนแสดง popup
     const canWatchVideo = remainingPlays > 0 && videoUrl;
+    const cachedName = localStorage.getItem('slot_username') || '';
     
     const overlay = document.createElement('div');
     overlay.className = 'slot-overlay';
     overlay.innerHTML = `
-        <div class="slot-popup">
+        <div class="slot-popup" style="position: relative;">
+            <button class="popup-close-x" id="popup-close-x">×</button>
+            
             <h2>${isWin ? '🎉 ยินดีด้วย!' : '😅 เสียใจด้วย'}</h2>
             <div class="reward-text ${isWin ? '' : 'lose'}">
                 ${result.value || (isWin ? 'คุณได้รางวัล!' : 'ไม่ได้รางวัล')}
             </div>
             
-            ${isWin ? `
-                <input type="text" id="slot-name-input" placeholder="กรอกชื่อของคุณ" />
-                <button class="slot-btn slot-btn-primary" id="slot-save-btn">
-                    💾 บันทึก & ดาวน์โหลด
-                </button>
-            ` : ''}
+            <input type="text" id="slot-name-input" placeholder="กรอกชื่อของคุณ" value="${cachedName}" />
+            <button class="slot-btn slot-btn-primary" id="slot-save-btn">
+                ส่งชิงโชค
+            </button>
             
-            ${canWatchVideo ? `
-                <p style="color: #888; margin-top: 20px;">เหลือสิทธิ์อีก ${remainingPlays} ครั้ง</p>
-                <button class="slot-btn slot-btn-secondary" id="slot-video-btn">
-                    🎬 ดูวิดีโอเพื่อสุ่มเพิ่ม
-                </button>
-            ` : `
-                <p style="color: #888; margin-top: 20px;">
-                    ${remainingPlays <= 0 ? 'นี่คือครั้งสุดท้ายแล้ว' : ''}
+            <div id="slot-video-area" style="margin-top: 20px;">
+                <!-- Video button will appear here after send -->
+                <p style="color: #888;">
+                    ${remainingPlays <= 0 ? 'นี่คือครั้งสุดท้ายแล้ว' : `เหลือสิทธิ์อีก ${remainingPlays} ครั้ง`}
                 </p>
-                <button class="slot-btn slot-btn-secondary" id="slot-close-btn">
-                    ปิด
-                </button>
-            `}
+            </div>
         </div>
     `;
     
@@ -261,6 +293,8 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
             const nameInput = overlay.querySelector('#slot-name-input');
             const name = nameInput?.value.trim();
             
+            if (name) localStorage.setItem('slot_username', name);
+            
             if (!name) {
                 nameInput.style.borderColor = '#e94560';
                 nameInput.placeholder = 'กรุณากรอกชื่อ!';
@@ -268,27 +302,46 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
             }
             
             saveBtn.disabled = true;
-            saveBtn.textContent = 'กำลังบันทึก...';
+            saveBtn.textContent = 'กำลังส่ง...';
             
             await onSave(name);
             
-            // Download screenshot
-            await captureAndDownload();
+            saveBtn.textContent = 'ส่งข้อมูลเรียบร้อย';
             
+            // Show Video Button handled here
+            if (canWatchVideo) {
+                const videoArea = overlay.querySelector('#slot-video-area');
+                videoArea.innerHTML = `
+                    <p style="color: #888;">ส่งข้อมูลแล้ว! ดูวิดีโอเพื่อเล่นต่ออีก ${remainingPlays} ครั้ง</p>
+                    <button class="slot-btn slot-btn-secondary" id="slot-video-btn">
+                        🎬 ดูวิดีโอเพื่อสุ่มเพิ่ม
+                    </button>
+                `;
+                
+                // Attach event to new button
+                const videoBtn = videoArea.querySelector('#slot-video-btn');
+                if (videoBtn) {
+                     videoBtn.addEventListener('click', () => {
+                        overlay.remove();
+                        showVideoPlayer(videoUrl, onWatchVideo);
+                    });
+                }
+            }
+        });
+    }
+
+    // Event: ปุ่มปิด (X)
+    const closeXBtn = overlay.querySelector('#popup-close-x');
+    if (closeXBtn) {
+        closeXBtn.addEventListener('click', () => {
             overlay.remove();
         });
     }
     
-    // Event: ดูวิดีโอ
-    const videoBtn = overlay.querySelector('#slot-video-btn');
-    if (videoBtn) {
-        videoBtn.addEventListener('click', () => {
-            overlay.remove();
-            showVideoPlayer(videoUrl, onWatchVideo);
-        });
-    }
+    // Old video event binding removed (moved to inside save)
     
-    // Event: ปิด
+    // Event: ปุ่มปิด (ด้านล่าง ถ้ามี - ตอนนี้เอาออกแล้วใช้ x แทน หรือถ้าจะเก็บไว้ก็ได้ แต่โค้ดบนลบ slot-close-btn ไปแล้วใน template)
+    // แต่เพื่อความชัวร์ ถ้ามีการใช้โค้ดอื่น
     const closeBtn = overlay.querySelector('#slot-close-btn');
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
@@ -315,11 +368,19 @@ export function showVideoPlayer(videoUrl, onComplete) {
             <button class="video-close-btn" id="video-done-btn">✓ ดูเสร็จแล้ว</button>
         `;
         
-        // แสดงปุ่มหลังจาก 10 วินาที (หรือปรับตามความเหมาะสม)
+        // แสดงปุ่มหลังจาก 5 วินาที (ปรับลดลง)
         setTimeout(() => {
             const btn = container.querySelector('#video-done-btn');
             if (btn) btn.style.display = 'block';
-        }, 10000);
+
+            // Auto close for iframe after 15s (User request: exit by itself)
+            setTimeout(() => {
+                if (document.body.contains(container)) {
+                    container.remove();
+                    if (onComplete) onComplete();
+                }
+            }, 15000);
+        }, 5000);
         
     } else {
         container.innerHTML = `
@@ -329,7 +390,9 @@ export function showVideoPlayer(videoUrl, onComplete) {
         
         const video = container.querySelector('video');
         video.addEventListener('ended', () => {
-            container.querySelector('#video-done-btn').style.display = 'block';
+            // Auto close when video ends
+            container.remove();
+            if (onComplete) onComplete();
         });
     }
     
@@ -340,26 +403,4 @@ export function showVideoPlayer(videoUrl, onComplete) {
         container.remove();
         if (onComplete) onComplete();
     });
-}
-
-/**
- * แคปหน้าจอและดาวน์โหลด
- */
-async function captureAndDownload() {
-    try {
-        // ใช้ html2canvas ถ้ามี หรือแจ้งให้ user screenshot เอง
-        if (typeof html2canvas !== 'undefined') {
-            const canvas = await html2canvas(document.body);
-            const link = document.createElement('a');
-            link.download = `slot-reward-${Date.now()}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        } else {
-            // ถ้าไม่มี html2canvas ให้ download แค่ข้อมูล
-            alert('กรุณากด Screenshot หน้าจอเพื่อบันทึกรางวัล!');
-        }
-    } catch (error) {
-        console.error('Capture error:', error);
-        alert('กรุณากด Screenshot หน้าจอเพื่อบันทึกรางวัล!');
-    }
 }

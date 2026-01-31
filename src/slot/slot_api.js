@@ -158,26 +158,39 @@ export async function fetchRewardsFromServer() {
 /**
  * POST: บันทึกรางวัล
  */
+/**
+ * POST: บันทึกรางวัล
+ * ส่งข้อมูล update_row ไปยัง GAS
+ */
 export async function updateRow(id, name, reward) {
+    console.log(`[SlotAPI] Updating row for ${id}, Reward: ${reward}`);
+    
     try {
+        const payload = {
+            action: 'update_row',
+            payload: {
+                id: id,
+                name: name,
+                reward: reward
+            }
+        };
+
         const response = await fetch(API_BASE, {
             method: 'POST',
+            cache: 'no-store', // ห้าม cache
             headers: {
-                'Content-Type': 'text/plain',
+                'Content-Type': 'text/plain;charset=utf-8', // ใช้ text/plain เพื่อเลี่ยง CORS preflight บางกรณีของ GAS
             },
-            body: JSON.stringify({
-                action: 'update_row',
-                payload: { id, name, reward }
-            })
+            body: JSON.stringify(payload)
         });
         
         const data = await response.json();
-        console.log('[SlotAPI] updateRow response:', data);
+        console.log('[SlotAPI] updateRow response:', data.ok ? 'Success' : 'Failed', data);
         
-        // อัปเดต local storage ด้วยข้อมูลใหม่
-        if (data.ok || data.status === 409) {
-            // ดึงข้อมูลล่าสุดมาเก็บ
-            await getUserById(id);
+        // อัปเดตข้อมูล Local Storage ทันทีเพื่อความแม่นยำ
+        if (data.ok) {
+            // อาจจะดึงข้อมูลล่าสุดมาเก็บถ้าจำเป็น แต่ในเคสนี้แค่ส่งก็พอ
+             await getUserById(id);
         }
         
         return data;

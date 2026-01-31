@@ -141,8 +141,8 @@ export class SlotGame {
             const timing = animMap[tier];
             console.log(`[SlotGame] Playing ${tier} animation:`, timing);
 
-            // 4. เพิ่ม play count ก่อนเล่น animation
-            incrementPlayCount();
+            // 4. เพิ่ม play count ย้ายไปทำตอนกด Save แทน
+            // incrementPlayCount();
 
             // 5. เล่น animation
             await this.playAnimation(object, timing.start_time, timing.end_time);
@@ -202,6 +202,12 @@ export class SlotGame {
                     name,
                     this.currentResult.value
                 );
+                
+                // เพิ่ม Count หลังจากส่งข้อมูลสำเร็จเท่านั้น
+                if (result.ok || result.status !== 500) {
+                     incrementPlayCount();
+                }
+
                 console.log('[SlotGame] Save result:', result);
             },
             // onWatchVideo callback
