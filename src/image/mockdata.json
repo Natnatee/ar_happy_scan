@@ -42,7 +42,10 @@
                       "asset_name": "blue_eye.glb",
                       "asset_image": "",
                       "action": { "click":{
-                        "asset_animation": true 
+                        "asset_animation": true ,
+                        "start_time": 7,
+                        "end_time": 15,
+                        "loop": false
                       }}
                     },
                     {

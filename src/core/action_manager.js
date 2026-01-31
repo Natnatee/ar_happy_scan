@@ -57,13 +57,64 @@ export class ActionManager {
         // Handle Animation Toggle
         if (actionConfig.asset_animation === true && object.userData.action) {
             const action = object.userData.action;
+            const mixer = object.userData.mixer;
             
+            // ถ้ากำลังเล่นอยู่ -> หยุด
             if (action.isRunning()) {
                 console.log("ActionManager: Stopping animation");
                 action.stop();
-            } else {
-                console.log("ActionManager: Playing animation");
-                action.reset().play();
+                return;
+            }
+
+            // ดึงค่า config (default: เล่นทั้งคลิป, loop ตลอด)
+            const startTime = actionConfig.start_time ?? 0;
+            const endTime = actionConfig.end_time ?? action.getClip().duration;
+            const shouldLoop = actionConfig.loop !== false; // default true
+
+            // ตั้งค่า loop
+            action.setLoop(shouldLoop ? THREE.LoopRepeat : THREE.LoopOnce);
+            action.clampWhenFinished = !shouldLoop; // ค้างเฟรมสุดท้ายถ้าไม่ loop
+
+            // รีเซ็ตและกำหนดจุดเริ่มต้น
+            action.reset();
+            action.time = startTime;
+            action.play();
+            
+            console.log(`ActionManager: Playing animation from ${startTime}s to ${endTime}s (loop: ${shouldLoop})`);
+
+            // ถ้ามี endTime กำหนด ให้หยุดเมื่อถึงเวลา
+            if (endTime < action.getClip().duration || !shouldLoop) {
+                const duration = endTime - startTime;
+                
+                // ใช้ mixer event listener เพื่อหยุดที่ endTime
+                const onLoop = (e) => {
+                    if (e.action === action) {
+                        if (action.time >= endTime) {
+                            if (!shouldLoop) {
+                                action.paused = true;
+                                action.time = endTime;
+                            } else {
+                                action.time = startTime; // กลับไปเริ่มใหม่
+                            }
+                        }
+                    }
+                };
+
+                // ลบ listener เก่าถ้ามี
+                if (object.userData._animListener) {
+                    mixer.removeEventListener('loop', object.userData._animListener);
+                }
+                object.userData._animListener = onLoop;
+                mixer.addEventListener('loop', onLoop);
+
+                // สำหรับ LoopOnce ใช้ setTimeout เป็น backup
+                if (!shouldLoop) {
+                    setTimeout(() => {
+                        if (action.isRunning() && action.time >= endTime - 0.1) {
+                            action.paused = true;
+                        }
+                    }, duration * 1000);
+                }
             }
         }
     }
