@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindAR Image Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image.prod.js"></script>
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+  </head>
+  <body>
+    <a-scene
+      mindar-image="imageTargetSrc: https://supabase.wemear.com/storage/v1/object/public/assets/mind/Test_Scene; autoStart: true; maxTrack: 1;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
+
+      <a-entity mindar-image-target="targetIndex: 0">
+        <a-image
+          id="test-image"
+          src="https://supabase.wemear.com/storage/v1/object/public/assets/images/Landscape-Color.jpg"
+          position="0 0 0"
+          rotation="0 0 0"
+          scale="1 1 1"
+          opacity="1"
+        ></a-image>
+      <a-plane id="red-plane" class="clickable" color="red" position="0 0 0.1" width="1" height="1" opacity="0.7"></a-plane>
+      </a-entity>
+    </a-scene>
+
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+    <script>
+      const plane = document.querySelector("#red-plane");
+      plane.addEventListener("click", event => {
+        console.log("Red plane clicked!");
+      });
+    </script>
+  </body>
+</html>

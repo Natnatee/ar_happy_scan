@@ -34,13 +34,16 @@
                       "src": "./image/assets/dragon.glb",
                       "type": "3D Model",
                       "scale": [0.2, 0.2, 0.2],
-                      "asset_animation": true, 
+                      "asset_animation": false, 
                       "opacity": 1,
                       "asset_id": "asset_ed011595-7fe4-4d6d-b09e-5e8b7170afb1",
                       "position": [0, -0.5, 0],
                       "rotation": [0, 0, 0],
                       "asset_name": "DEEbase_basic_pbr.glb",
-                      "asset_image": ""
+                      "asset_image": "",
+                      "action": { "click":{
+                        "asset_animation": true 
+                      }}
                     },
                     {
                       "src": "https://supabase.wemear.com/storage/v1/object/public/assets/images/KoratCharacter.png",
