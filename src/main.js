@@ -1,7 +1,7 @@
 import './styles/main.css';
 import { CONFIG_KEY } from './core/config';
 import { scan_json, use_index_db } from './core/index_db';
-import mockData from './image/mockdata.json';
+import mockData from './slot/mockdata.json';
 
 async function init() {
     const appEl = document.querySelector('#app');
@@ -49,8 +49,11 @@ async function init() {
             throw new Error('Invalid configuration data');
         }
 
-        // กำหนดหน้าที่จะไป (Default เป็น image.html ถ้าไม่ได้ระบุ)
-        const targetPage = config.targetPage || 'image.html';
+        // กำหนดหน้าที่จะไปจาก tracking_modes (ใช้ key แรก)
+        const trackingModes = config.info.tracking_modes;
+        const firstMode = Object.keys(trackingModes)[0]; // เช่น 'image', 'face', 'slot'
+        const targetPage = config.targetPage || `${firstMode}.html`;
+        
         statusText.innerText = 'Loading Assets...';
 
         // 3. Scan หา Assets ทั้งหมด

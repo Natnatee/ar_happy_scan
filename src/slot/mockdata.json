@@ -1,0 +1,60 @@
+[
+  {
+    "project_id": "slot-game-001",
+    "info": {
+      "tracking_modes": {
+        "slot": {
+          "tracks": [
+            {
+              "scenes": [
+                {
+                  "assets": [
+                    {
+                      "src": "./image/assets/slot_machine.glb",
+                      "type": "3D Model",
+                      "scale": [2, 2, 2],
+                      "asset_animation": false,
+                      "opacity": 1,
+                      "asset_id": "slot_machine_main",
+                      "position": [0, 0, 0],
+                      "rotation": [0, 0, 0],
+                      "asset_name": "slot_machine.glb",
+                      "asset_image": "",
+                      "action": {
+                        "click": {
+                          "type": "slot_game",
+                          "animation_map": {
+                            "fail1": { "start_time": 0, "end_time": 7 },
+                            "fail2": { "start_time": 7, "end_time": 15 },
+                            "win": { "start_time": 15, "end_time": 24 }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "scene_id": "S1"
+                }
+              ],
+              "track_id": "T1"
+            }
+          ],
+          "mindFile": {
+            "mind_id": "slot-mind-001",
+            "mind_src": "https://supabase.wemear.com/storage/v1/object/public/assets/mind/Test_Scene",
+            "mind_name": "Slot_Scene",
+            "mind_image": {
+              "T1": "https://supabase.wemear.com/storage/v1/object/public/assets/mind/images/Test_Scene_T2"
+            }
+          },
+          "setting": {
+            "background": "./image/setting/background_default.jpg",
+            "icon": "./image/setting/icon_default.jpg",
+            "scene_button": {
+              "show": false
+            }
+          }
+        }
+      }
+    }
+  }
+]
