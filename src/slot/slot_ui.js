@@ -292,6 +292,7 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
         saveBtn.addEventListener('click', async () => {
             const nameInput = overlay.querySelector('#slot-name-input');
             const name = nameInput?.value.trim();
+            const videoArea = overlay.querySelector('#slot-video-area');
             
             if (name) localStorage.setItem('slot_username', name);
             
@@ -299,6 +300,16 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
                 nameInput.style.borderColor = '#e94560';
                 nameInput.placeholder = 'กรุณากรอกชื่อ!';
                 return;
+            }
+
+            // Check limit BEFORE sending API
+            if (getPlayCount() >= 3) {
+                 videoArea.innerHTML = `
+                    <p style="color: #e94560; font-size: 16px; font-weight: bold; margin-top: 15px;">
+                        ท่านใช้สิทธิ์ครบ 3 ครั้งแล้ว ไม่สามารถส่งข้อมูลได้อีก
+                    </p>
+                 `;
+                 return;
             }
             
             saveBtn.disabled = true;
@@ -311,7 +322,6 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
             // Re-check status after increment
             const currentCount = getPlayCount();
             const realRemaining = 3 - currentCount;
-            const videoArea = overlay.querySelector('#slot-video-area');
             
             if (realRemaining > 0 && videoUrl) {
                 videoArea.innerHTML = `
@@ -375,34 +385,26 @@ export function showVideoPlayer(videoUrl, onComplete) {
     if (isIframe) {
         container.innerHTML = `
             <iframe src="${videoUrl}" frameborder="0" allowfullscreen></iframe>
-            <button class="video-close-btn" id="video-done-btn">✓ ดูเสร็จแล้ว</button>
         `;
         
-        // แสดงปุ่มหลังจาก 5 วินาที (ปรับลดลง)
+        // Auto close for iframe after 15s (User request: exit by itself)
         setTimeout(() => {
-            const btn = container.querySelector('#video-done-btn');
-            if (btn) btn.style.display = 'block';
-
-            // Auto close for iframe after 15s (User request: exit by itself)
-            setTimeout(() => {
-                try {
-                    if (document.body.contains(container)) {
-                        container.remove();
-                        if (onComplete) onComplete();
-                    }
-                } catch (e) {
-                    // Fallback in case of error, force remove
-                    console.error("Auto close error:", e);
-                    if (container && container.parentNode) container.parentNode.removeChild(container);
+            try {
+                if (document.body.contains(container)) {
+                    container.remove();
                     if (onComplete) onComplete();
                 }
-            }, 15000);
-        }, 5000);
+            } catch (e) {
+                // Fallback in case of error, force remove
+                console.error("Auto close error:", e);
+                if (container && container.parentNode) container.parentNode.removeChild(container);
+                if (onComplete) onComplete();
+            }
+        }, 15000);
         
     } else {
         container.innerHTML = `
             <video src="${videoUrl}" autoplay controls playsinline webkit-playsinline></video>
-            <button class="video-close-btn" id="video-done-btn">✓ ดูเสร็จแล้ว</button>
         `;
         
         const video = container.querySelector('video');
@@ -424,10 +426,4 @@ export function showVideoPlayer(videoUrl, onComplete) {
     }
     
     document.body.appendChild(container);
-    
-    const doneBtn = container.querySelector('#video-done-btn');
-    doneBtn.addEventListener('click', () => {
-        container.remove();
-        if (onComplete) onComplete();
-    });
 }
