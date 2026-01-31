@@ -385,8 +385,15 @@ export function showVideoPlayer(videoUrl, onComplete) {
 
             // Auto close for iframe after 15s (User request: exit by itself)
             setTimeout(() => {
-                if (document.body.contains(container)) {
-                    container.remove();
+                try {
+                    if (document.body.contains(container)) {
+                        container.remove();
+                        if (onComplete) onComplete();
+                    }
+                } catch (e) {
+                    // Fallback in case of error, force remove
+                    console.error("Auto close error:", e);
+                    if (container && container.parentNode) container.parentNode.removeChild(container);
                     if (onComplete) onComplete();
                 }
             }, 15000);
@@ -394,15 +401,25 @@ export function showVideoPlayer(videoUrl, onComplete) {
         
     } else {
         container.innerHTML = `
-            <video src="${videoUrl}" autoplay controls></video>
+            <video src="${videoUrl}" autoplay controls playsinline webkit-playsinline></video>
             <button class="video-close-btn" id="video-done-btn">✓ ดูเสร็จแล้ว</button>
         `;
         
         const video = container.querySelector('video');
+        // Add playsinline for mobile
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        
         video.addEventListener('ended', () => {
-            // Auto close when video ends
-            container.remove();
-            if (onComplete) onComplete();
+             try {
+                if (document.body.contains(container)) {
+                    container.remove();
+                    if (onComplete) onComplete();
+                }
+            } catch (e) {
+                if (container && container.parentNode) container.parentNode.removeChild(container);
+                if (onComplete) onComplete();
+            }
         });
     }
     
