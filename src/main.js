@@ -49,10 +49,9 @@ async function init() {
             throw new Error('Invalid configuration data');
         }
 
-        // กำหนดหน้าที่จะไปจาก tracking_modes (ใช้ key แรก)
-        const trackingModes = config.info.tracking_modes;
-        const firstMode = Object.keys(trackingModes)[0]; // เช่น 'image', 'face', 'slot'
-        const targetPage = config.targetPage || `${firstMode}.html`;
+        // ดึง key แรกจาก tracking_modes มาทำเป็นชื่อไฟล์ .html ทันที
+        const firstMode = Object.keys(config.info.tracking_modes)[0]; 
+        const targetPage = `${firstMode}.html`;
         
         statusText.innerText = 'Loading Assets...';
 
