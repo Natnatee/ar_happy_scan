@@ -2,7 +2,8 @@
 
 ใช้ pain text ในการส่งข้อมูล
 
-Post
+Post : update_row
+
 https://script.google.com/macros/s/AKfycbwpjzNXx4PIgoYwVdbqz7hAf8QWyBmwzw__mybTIvtNIz9y4dU2bVWcjrV1UZ1tnOW0/exec
 
 payload
@@ -30,7 +31,7 @@ response
     ]
 }
 
-Get
+Get: get_user_by_id
 
 https://script.google.com/macros/s/AKfycbwpjzNXx4PIgoYwVdbqz7hAf8QWyBmwzw__mybTIvtNIz9y4dU2bVWcjrV1UZ1tnOW0/exec?action=get_user_by_id&id=u_123
 
@@ -48,7 +49,7 @@ response
     }
 }
 
-Get
+Get : get_random_reward_and_video
 
 https://script.google.com/macros/s/AKfycbwpjzNXx4PIgoYwVdbqz7hAf8QWyBmwzw__mybTIvtNIz9y4dU2bVWcjrV1UZ1tnOW0/exec?action=random_reward_and_video
 
