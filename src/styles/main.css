@@ -10,12 +10,19 @@ body {
   font-family: var(--font-family);
   background-color: var(--color-bg);
   color: var(--color-text);
-  overflow: hidden; /* Prevent scrolling in AR */
+  overflow: hidden; /* บังคับไม่ให้มี scrollbar */
+  width: 100vw;
+  height: 100vh;
+}
+
+/* เฉพาะหน้า Loading (index.html) */
+.boot-screen {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
 }
+
 
 .loading-container {
   text-align: center;
@@ -45,5 +52,42 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* UI Layer for AR */
+.ui-container {
+  position: fixed;
+  bottom: 50px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 40px;
+  box-sizing: border-box;
+  z-index: 1000;
+  pointer-events: none; /* เพื่อไม่ให้บังการสัมผัสส่วนอื่น */
+}
+
+.nav-btn {
+  width: 60px;
+  height: 60px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0.8;
+  transition: transform 0.2s;
+  display: none; /* ซ่อนไว้ก่อน จะโชว์เมื่อเจอ Target */
+}
+
+.nav-btn:hover {
+  transform: scale(1.1);
+}
+
+.nav-btn:active {
+  transform: scale(0.9);
 }
 

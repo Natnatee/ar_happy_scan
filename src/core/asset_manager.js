@@ -32,7 +32,14 @@ export class AssetManager {
 
     async createImage(url, asset) {
         const texture = await this.textureLoader.loadAsync(url);
-        const geometry = new THREE.PlaneGeometry(asset.scale[0], asset.scale[1]);
+        const { width: imgW, height: imgH } = texture.image;
+        const aspect = imgW / imgH;
+
+        // ใช้ scale[0] เป็นความกว้างหลัก แล้วคำนวณความสูงตามสัดส่วนจริง
+        const width = asset.scale[0];
+        const height = width / aspect;
+
+        const geometry = new THREE.PlaneGeometry(width, height);
         const material = new THREE.MeshBasicMaterial({ 
             map: texture, 
             transparent: true, 
@@ -44,25 +51,35 @@ export class AssetManager {
     }
 
     async createVideo(url, asset) {
-        const video = document.createElement('video');
-        video.src = url;
-        video.loop = true;
-        video.muted = true; // ส่วนใหญ่เบราว์เซอร์บังคับ muted ก่อนเล่นอัตโนมัติ
-        video.playsInline = true;
-        video.play();
+        return new Promise((resolve) => {
+            const video = document.createElement('video');
+            video.src = url;
+            video.loop = true;
+            video.muted = true;
+            video.playsInline = true;
 
-        const texture = new THREE.VideoTexture(video);
-        const geometry = new THREE.PlaneGeometry(asset.scale[0], asset.scale[1]);
-        const material = new THREE.MeshBasicMaterial({ 
-            map: texture, 
-            transparent: true, 
-            opacity: asset.opacity 
+            video.onloadedmetadata = () => {
+                const aspect = video.videoWidth / video.videoHeight;
+                const width = asset.scale[0];
+                const height = width / aspect;
+
+                const texture = new THREE.VideoTexture(video);
+                const geometry = new THREE.PlaneGeometry(width, height);
+                const material = new THREE.MeshBasicMaterial({ 
+                    map: texture, 
+                    transparent: true, 
+                    opacity: asset.opacity 
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.userData.video = video;
+                this.applyTransform(mesh, asset);
+                resolve(mesh);
+            };
+            
+            video.load();
         });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.userData.video = video; // เก็บไว้เผื่อสั่ง play/pause
-        this.applyTransform(mesh, asset);
-        return mesh;
     }
+
 
     async createModel(url, asset) {
         const gltf = await this.gltfLoader.loadAsync(url);

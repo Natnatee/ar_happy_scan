@@ -6,14 +6,17 @@ import mockData from './image/mockdata.json';
 async function init() {
     const appEl = document.querySelector('#app');
     appEl.innerHTML = `
-        <div class="loading-container">
-            <h1 id="status-text">Booting System...</h1>
-            <div class="progress-bar">
-                <div id="progress-fill"></div>
+        <div class="boot-screen">
+            <div class="loading-container">
+                <h1 id="status-text">Booting System...</h1>
+                <div class="progress-bar">
+                    <div id="progress-fill"></div>
+                </div>
+                <p id="detail-text">Preparing assets...</p>
             </div>
-            <p id="detail-text">Preparing assets...</p>
         </div>
     `;
+
 
     const statusText = document.querySelector('#status-text');
     const detailText = document.querySelector('#detail-text');

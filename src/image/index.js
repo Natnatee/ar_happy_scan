@@ -4,25 +4,25 @@ import { getConfig } from '../core/config';
 import { use_index_db } from '../core/index_db';
 import { AssetManager } from '../core/asset_manager';
 import { SceneManager } from '../core/scene_manager';
+import { UIManager } from '../core/ui_manager';
+import '../styles/main.css';
 
 const start = async () => {
     // 1. Load Configuration
     const config = getConfig();
     if (!config) {
-        console.error("No config found, redirecting to home...");
         window.location.href = '/';
         return;
     }
 
     const imageConfig = config.info.tracking_modes.image;
-    if (!imageConfig) {
-        console.error("No image tracking configuration!");
-        return;
-    }
+    if (!imageConfig) return;
 
     // 2. Initialize Core Managers
     const assetManager = new AssetManager();
-    const sceneManagers = []; // เก็บ SceneManager แยกตาม Anchor
+    const uiManager = new UIManager();
+    const sceneManagers = [];
+    const currentSceneIndices = [];
 
     // 3. Prepare MindAR
     const mindFileBlob = await use_index_db(imageConfig.mindFile.mind_src);
@@ -37,31 +37,47 @@ const start = async () => {
         missTolerance: 15,
     });
 
-
     const { renderer, scene, camera } = mindarThree;
 
-    // Default Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
+    // Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
     const directLight = new THREE.DirectionalLight(0xffffff, 1);
     directLight.position.set(0, 0, 1);
     scene.add(directLight);
 
-    // 4. Setup Anchors and Scenes
+    // 4. Initialize UI Manager
+    let activeAnchorIndex = -1;
+
+    const onNavigate = async (direction) => {
+        if (activeAnchorIndex === -1) return;
+        
+        const track = imageConfig.tracks[activeAnchorIndex];
+        let nextIndex = currentSceneIndices[activeAnchorIndex] + direction;
+
+        if (nextIndex < 0) nextIndex = track.scenes.length - 1;
+        if (nextIndex >= track.scenes.length) nextIndex = 0;
+
+        currentSceneIndices[activeAnchorIndex] = nextIndex;
+        await sceneManagers[activeAnchorIndex].switchScene(track.scenes[nextIndex].scene_id);
+    };
+
+    await uiManager.init(imageConfig.setting, onNavigate);
+
+    // 5. Setup Anchors
     for (let i = 0; i < imageConfig.tracks.length; i++) {
         const track = imageConfig.tracks[i];
         const anchor = mindarThree.addAnchor(i);
-
-        // สร้าง SceneManager คุม Anchor นี้
         const sceneMgr = new SceneManager(anchor.group, assetManager);
-        sceneMgr.setScenes(track.scenes);
         
-        // โหลด Scene แรก (S1) ทันที
-        await sceneMgr.switchScene("S1");
+        sceneMgr.setScenes(track.scenes);
+        currentSceneIndices[i] = 0;
+        await sceneMgr.switchScene(track.scenes[0].scene_id);
 
         anchor.onTargetFound = () => {
-            console.log(`Target ${track.track_id} Found`);
-            // เมื่อเจอภาพ ให้เริ่มเล่นวิดีโอ/เสียงใน Scene ปัจจุบัน
+            activeAnchorIndex = i;
+            // โชว์ปุ่มถ้า Track นี้มีมากกว่า 1 Scene
+            uiManager.showNavigation(track.scenes.length > 1);
+            
             anchor.group.children.forEach(obj => {
                 if (obj.userData.video) obj.userData.video.play();
                 if (obj.userData.audio) obj.userData.audio.play();
@@ -69,8 +85,10 @@ const start = async () => {
         };
 
         anchor.onTargetLost = () => {
-            console.log(`Target ${track.track_id} Lost`);
-            // เมื่อภาพหาย ให้หยุดวิดีโอ/เสียงเพื่อประหยัดทรัพยากร
+            if (activeAnchorIndex === i) {
+                activeAnchorIndex = -1;
+                uiManager.showNavigation(false);
+            }
             anchor.group.children.forEach(obj => {
                 if (obj.userData.video) obj.userData.video.pause();
                 if (obj.userData.audio) obj.userData.audio.pause();
@@ -80,11 +98,9 @@ const start = async () => {
         sceneManagers.push(sceneMgr);
     }
 
-    // 5. Start Engine
+    // 6. Start Engine
     try {
         await mindarThree.start();
-        console.log("AR System Ready (Modular)");
-
         renderer.setAnimationLoop(() => {
             renderer.render(scene, camera);
         });
