@@ -308,11 +308,14 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
             
             saveBtn.textContent = 'ส่งข้อมูลเรียบร้อย';
             
-            // Show Video Button handled here
-            if (canWatchVideo) {
-                const videoArea = overlay.querySelector('#slot-video-area');
+            // Re-check status after increment
+            const currentCount = getPlayCount();
+            const realRemaining = 3 - currentCount;
+            const videoArea = overlay.querySelector('#slot-video-area');
+            
+            if (realRemaining > 0 && videoUrl) {
                 videoArea.innerHTML = `
-                    <p style="color: #888;">ส่งข้อมูลแล้ว! ดูวิดีโอเพื่อเล่นต่ออีก ${remainingPlays} ครั้ง</p>
+                    <p style="color: #888;">ส่งข้อมูลแล้ว! ดูวิดีโอเพื่อเล่นต่ออีก ${realRemaining} ครั้ง</p>
                     <button class="slot-btn slot-btn-secondary" id="slot-video-btn">
                         🎬 ดูวิดีโอเพื่อสุ่มเพิ่ม
                     </button>
@@ -326,6 +329,13 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
                         showVideoPlayer(videoUrl, onWatchVideo);
                     });
                 }
+            } else {
+                 // หมดสิทธิ์
+                 videoArea.innerHTML = `
+                    <p style="color: #e94560; font-size: 18px; font-weight: bold; margin-top: 15px;">
+                        ท่านใช้สิทธิ์ดูโฆษณาครบแล้ว
+                    </p>
+                 `;
             }
         });
     }
