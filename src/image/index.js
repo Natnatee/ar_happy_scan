@@ -101,12 +101,18 @@ const start = async () => {
     // 6. Start Engine
     try {
         await mindarThree.start();
+        
+        const clock = new THREE.Clock(); // สำหรับคำนวณเวลาแอนิเมชั่น
+
         renderer.setAnimationLoop(() => {
+            const deltaTime = clock.getDelta();
+            assetManager.update(deltaTime); // อัปเดตแอนิเมชั่นทั้งหมด
             renderer.render(scene, camera);
         });
     } catch (error) {
         console.error("AR Start Failure:", error);
     }
+
 };
 
 start();

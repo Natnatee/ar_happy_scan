@@ -6,6 +6,14 @@ export class AssetManager {
     constructor() {
         this.textureLoader = new THREE.TextureLoader();
         this.gltfLoader = new GLTFLoader();
+        this.mixers = new Set(); // เก็บเครื่องเล่นแอนิเมชั่นของรุ่นต่างๆ
+    }
+
+    /**
+     * อัปเดตแอนิเมชั่นในทุกเฟรม
+     */
+    update(deltaTime) {
+        this.mixers.forEach(mixer => mixer.update(deltaTime));
     }
 
     /**
@@ -80,21 +88,30 @@ export class AssetManager {
         });
     }
 
-
     async createModel(url, asset) {
         const gltf = await this.gltfLoader.loadAsync(url);
         const model = gltf.scene;
+
+        // ค้นหาและเล่น Animation (Default: เล่นตัวแรก)
+        if (gltf.animations && gltf.animations.length > 0) {
+            const mixer = new THREE.AnimationMixer(model);
+            const action = mixer.clipAction(gltf.animations[0]);
+            action.play();
+            
+            // เก็บ mixer ไว้เพื่อให้ update() มาเรียกใช้
+            this.mixers.add(mixer);
+            model.userData.mixer = mixer;
+        }
+
         model.scale.set(...asset.scale);
         this.applyTransform(model, asset);
         return model;
     }
 
     async createAudio(url, asset) {
-        // สำหรับ Audio เราอาจจะคืนเป็น Audio Object หรือ Dummy Entity ที่มีเสียง
         const audio = new Audio(url);
         audio.loop = true;
         
-        // คืนค่าเป็น object เปล่าแต่มี logic เสียงติดไป
         const dummy = new THREE.Group();
         dummy.userData.audio = audio;
         this.applyTransform(dummy, asset);
@@ -104,7 +121,16 @@ export class AssetManager {
     applyTransform(object, asset) {
         object.position.set(...asset.position);
         object.rotation.set(...asset.rotation);
-        // ชื่อเพื่อใช้ในการค้นหา/ลบ
         object.name = asset.asset_id;
     }
+
+    /**
+     * ลบ Mixer ออกเมื่อ Asset ถูกทำลาย (Memory Clean up)
+     */
+    removeAsset(object) {
+        if (object.userData.mixer) {
+            this.mixers.delete(object.userData.mixer);
+        }
+    }
 }
+

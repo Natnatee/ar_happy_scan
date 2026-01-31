@@ -61,7 +61,11 @@ export class SceneManager {
             if (child.userData.video) child.userData.video.pause();
             if (child.userData.audio) child.userData.audio.pause();
             
+            // ลบพวก Mixer ออกจากระบบ
+            this.assetManager.removeAsset(child);
+            
             this.anchorGroup.remove(child);
         }
     }
 }
+
