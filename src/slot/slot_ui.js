@@ -231,10 +231,14 @@ export function showNoPlayPopup() {
     // Event: ปุ่มปิด (X)
     const closeBtn = overlay.querySelector('#no-play-close-btn');
     if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             overlay.remove();
         });
     }
+
+    // ป้องกัน Click ทะลุไปหา Model
+    overlay.addEventListener('click', (e) => e.stopPropagation());
 
     // Auto close after 3 seconds
     setTimeout(() => {
@@ -285,6 +289,10 @@ export function showResultPopup(result, videoUrl, onSave, onWatchVideo) {
     `;
     
     document.body.appendChild(overlay);
+    
+    // ป้องกัน Click/Touch ทะลุไปหา Model
+    overlay.addEventListener('click', (e) => e.stopPropagation());
+    overlay.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
     
     // Event: บันทึก
     const saveBtn = overlay.querySelector('#slot-save-btn');
@@ -423,4 +431,8 @@ export function showVideoPlayer(videoUrl, onComplete) {
     }
     
     document.body.appendChild(container);
+
+    // ป้องกัน Click/Touch ทะลุไปหา Model ขณะดูวิดีโอ
+    container.addEventListener('click', (e) => e.stopPropagation());
+    container.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
 }
