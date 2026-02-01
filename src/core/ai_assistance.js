@@ -62,7 +62,7 @@ export class AiAssistance {
         // --- คำนวณตาม Ratio ---
         // ในระบบ Ortho: กลางจอคือ 0, ขอบขวาคือ aspect, ขอบล่างคือ -1
         const xPos = aspect * 0.65; 
-        const yPos = -0.75; 
+        const yPos = -0.85; // ขยับลงมาให้ต่ำลง (เดิม -0.75)
 
         this.model.position.set(xPos, yPos, 0); 
 
@@ -93,7 +93,8 @@ export class AiAssistance {
         style.textContent = `
             .ai-speech-bubble {
                 position: fixed;
-                bottom: 35vh; 
+                /* ปรับตำแหน่งให้ต่ำลงเพื่อลด gap (เดิม 35vh) */
+                bottom: 22vh; 
                 right: 8vw;
                 background: white;
                 padding: 12px 18px;
@@ -104,7 +105,7 @@ export class AiAssistance {
                 font-size: 14px;
                 font-weight: 800;
                 color: #222;
-                z-index: 99999;
+                z-index: 500; /* ให้อยู่หลัง popup (9999) แต่อยู่บน AR (canvas) */
                 opacity: 0;
                 transform: scale(0.5) translateY(20px);
                 transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);

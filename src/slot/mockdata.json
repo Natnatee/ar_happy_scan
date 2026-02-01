@@ -66,7 +66,7 @@
                       "asset_image": "",
                       "action": {
                         "start": {
-                          "text": "Hello World",
+                          "text": "สแกน และ คลิ๊ก ที่ Slot เพื่อสุ่มเลยย",
                           "text_color": "#000000",
                           "text_size": 1,
                           "background": "white"
