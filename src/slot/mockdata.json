@@ -51,6 +51,30 @@
             "icon": "./image/setting/icon_default.jpg",
             "scene_button": {
               "show": false
+            },
+            "ai_assistance": {
+              "asset_model": {
+                      "src": "./image/assets/slot_machine.glb",
+                      "type": "3D Model",
+                      "scale": [2, 2, 2],
+                      "asset_animation": true,
+                      "opacity": 1,
+                      "asset_id": "slot_machine_main",
+                      "position": [0, 0, 0],
+                      "rotation": [0, 0, 0],
+                      "asset_name": "slot_machine.glb",
+                      "asset_image": "",
+                      "action": {
+                        "start": {
+                          "text": "Hello World",
+                          "text_color": "#000000",
+                          "text_size": 1,
+                          "background": "white",
+                          "background_position": [0, 0, 0],
+                          "background_size": "1:2"
+                        }
+                      }
+              }
             }
           }
         }

@@ -8,13 +8,11 @@ import {
     getOrCreateUID, 
     fetchRewardsFromServer, 
     updateRow, 
-    getUserById,
-    canPlay,
     isRewardReady,
     getNextReward,
     incrementPlayCount
 } from './slot_api.js';
-import { showResultPopup, showNoPlayPopup } from './slot_ui.js';
+import { showResultPopup } from './slot_ui.js';
 
 export class SlotGame {
     constructor() {

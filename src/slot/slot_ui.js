@@ -2,7 +2,7 @@
  * Slot Game UI - Popup และ Video Player
  */
 
-import { getPlayCount, canPlay } from './slot_api.js';
+import { getPlayCount } from './slot_api.js';
 
 /**
  * สร้าง CSS สำหรับ UI

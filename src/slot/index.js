@@ -10,8 +10,6 @@ import { use_index_db } from '../core/index_db';
 import { AssetManager } from '../core/asset_manager';
 import { SceneManager } from '../core/scene_manager';
 import { SlotGame } from './slot_game';
-import { canPlay } from './slot_api';
-import { showNoPlayPopup } from './slot_ui';
 import '../styles/main.css';
 
 const start = async () => {
