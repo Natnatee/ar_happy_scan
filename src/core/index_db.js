@@ -79,7 +79,7 @@ export function scan_json(config) {
         // รายการ Key ที่ต้องเช็คตามกฎ
         const targetKeys = [
             'src', 'asset_image', 'mind_src', 'background', 
-            'icon', 'src_left', 'src_right'
+            'icon', 'src_left', 'src_right', 'loop_sound'
         ];
 
         for (const key in obj) {

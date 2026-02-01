@@ -23,6 +23,7 @@
                       "action": {
                         "click": {
                           "type": "slot_game",
+                          "loop_sound": "./image/assets/slot-machine.mp3",
                           "animation_map": {
                             "fail1": { "start_time": 0, "end_time": 7 },
                             "fail2": { "start_time": 7, "end_time": 15 },

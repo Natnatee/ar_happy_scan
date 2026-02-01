@@ -12,6 +12,7 @@ import {
     getNextReward,
     incrementPlayCount
 } from './slot_api.js';
+import { use_index_db } from '../core/index_db.js';
 import { showResultPopup } from './slot_ui.js';
 
 export class SlotGame {
@@ -22,6 +23,7 @@ export class SlotGame {
         this.uid = getOrCreateUID();
         this.isRewardsLoaded = false;
         this.loadingPromise = null;
+        this.spinSound = null;
     }
 
     /**
@@ -139,8 +141,17 @@ export class SlotGame {
             const timing = animMap[tier];
             console.log(`[SlotGame] Playing ${tier} animation:`, timing);
 
-            // 4. เพิ่ม play count ย้ายไปทำตอนกด Save แทน
-            // incrementPlayCount();
+            // 4. จัดการเรื่องเสียง (Pre-load if needed)
+            if (actionConfig.loop_sound && !this.spinSound) {
+                try {
+                    const blob = await use_index_db(actionConfig.loop_sound);
+                    const url = URL.createObjectURL(blob);
+                    this.spinSound = new Audio(url);
+                    this.spinSound.loop = true;
+                } catch (e) {
+                    console.error('[SlotGame] Failed to load spin sound:', e);
+                }
+            }
 
             // 5. เล่น animation
             await this.playAnimation(object, timing.start_time, timing.end_time);
@@ -168,6 +179,12 @@ export class SlotGame {
                 return;
             }
 
+            // เริ่มเล่นเสียง
+            if (this.spinSound) {
+                this.spinSound.currentTime = 0;
+                this.spinSound.play().catch(e => console.warn('[SlotGame] Audio play failed:', e));
+            }
+
             // ตั้งค่า animation
             action.setLoop(THREE.LoopOnce);
             action.clampWhenFinished = true;
@@ -179,6 +196,11 @@ export class SlotGame {
             const duration = (endTime - startTime) * 1000;
             
             setTimeout(() => {
+                // หยุดเสียง
+                if (this.spinSound) {
+                    this.spinSound.pause();
+                }
+
                 action.paused = true;
                 this.isPlaying = false;
                 resolve();
