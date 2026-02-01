@@ -10,6 +10,7 @@ import { use_index_db } from '../core/index_db';
 import { AssetManager } from '../core/asset_manager';
 import { SceneManager } from '../core/scene_manager';
 import { SlotGame } from './slot_game';
+import { AiAssistance } from '../core/ai_assistance';
 import '../styles/main.css';
 
 const start = async () => {
@@ -55,6 +56,15 @@ const start = async () => {
     });
 
     const { renderer, scene, camera } = mindarThree;
+    renderer.autoClear = false; // สำคัญมาก: เพื่อให้เรนเดอร์ทับกันได้
+
+    // AI Assistance Initialization
+    // ใช้ renderer แทน เพื่อแยก Scene ออกมาเป็น Overlay
+    const aiAssistance = new AiAssistance(renderer, assetManager);
+    const aiConfig = slotConfig.setting?.ai_assistance;
+    if (aiConfig) {
+        await aiAssistance.init(aiConfig);
+    }
 
     // Lighting
     scene.add(new THREE.AmbientLight(0xffffff, 0.5));
@@ -94,7 +104,7 @@ const start = async () => {
     const mouse = new THREE.Vector2();
 
     const handleClick = (event) => {
-        // Prevent interaction if any popup is open or video is playing (Fix ghost clicks)
+        // Prevent interaction if any popup is open or video is playing
         if (document.querySelector('.slot-overlay') || 
             document.querySelector('.no-play-overlay') || 
             document.querySelector('.video-container')) {
@@ -111,6 +121,19 @@ const start = async () => {
             for (let i = 0; i < intersects.length; i++) {
                 let object = intersects[i].object;
                 
+                // --- ตรวจสอบว่าวัตถุและบรรพบุรุษ (Anchor) ต้องมองเห็นเท่านั้น ---
+                let isActuallyVisible = true;
+                let tempObj = object;
+                while (tempObj) {
+                    if (!tempObj.visible) {
+                        isActuallyVisible = false;
+                        break;
+                    }
+                    tempObj = tempObj.parent;
+                }
+                if (!isActuallyVisible) continue;
+                // -------------------------------------------------------
+
                 // Traverse up to find root with interaction
                 while (object) {
                     const action = object.userData.interaction?.click;
@@ -136,7 +159,14 @@ const start = async () => {
         renderer.setAnimationLoop(() => {
             const deltaTime = clock.getDelta();
             assetManager.update(deltaTime);
+            
+            // 1. วาดฉาก AR ปกติ
             renderer.render(scene, camera);
+            
+            // 2. วาดฉาก AI ทับลงไป (Overlay)
+            if (aiAssistance) {
+                aiAssistance.render();
+            }
         });
     } catch (error) {
         console.error("AR Start Failure:", error);
