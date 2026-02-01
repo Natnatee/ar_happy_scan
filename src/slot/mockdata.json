@@ -40,7 +40,7 @@
           ],
           "mindFile": {
             "mind_id": "slot-mind-001",
-            "mind_src": "https://supabase.wemear.com/storage/v1/object/public/assets/mind/Test_Scene",
+            "mind_src": "./image/mindar/targets_2.mind",
             "mind_name": "Slot_Scene",
             "mind_image": {
               "T1": "https://supabase.wemear.com/storage/v1/object/public/assets/mind/images/Test_Scene_T2"
