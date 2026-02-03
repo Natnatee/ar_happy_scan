@@ -161,72 +161,124 @@
         ctx.stroke();
       }
 
-      function drawHandOrigin(landmarks) {
-        // 1. จุดอ้างอิงระนาบ
-        const p0 = landmarks[0];   // Wrist
-        const p5 = landmarks[5];   // Index base
-        const p17 = landmarks[17]; // Pinky base
+      function drawBottleFrame(landmarks, vX, vY, vZ, color) {
+        // 1. คำนวณความงอของนิ้ว (Grip Strength)
+        // วัดระยะจากปลายนิ้วเฉลี่ย (8, 12, 16, 20) ไปยังกลางฝ่ามือ (9)
+        const tips = [8, 12, 16, 20];
+        let avgCurl = 0;
+        tips.forEach(t => {
+          const dist = Math.sqrt(
+            (landmarks[t].x - landmarks[9].x)**2 + 
+            (landmarks[t].y - landmarks[9].y)**2 + 
+            (landmarks[t].z - landmarks[9].z)**2
+          );
+          avgCurl += dist;
+        });
+        avgCurl /= tips.length;
 
-        // 2. เวกเตอร์ฐาน (Z-Axis / Normal)
+        // 2. ตำแหน่งศูนย์กลางขวด (Offset จากฝ่ามือตามแนว Normal Z)
+        // ถ้านิ้วแบ (avgCurl มาก) ให้ขวดลอยห่าง / ถ้านิ้วกำ (avgCurl น้อย) ให้ขวดชิดฝ่ามือ
+        const baseOffset = 0.05; // ระยะห่างพื้นฐาน
+        const dynamicOffset = baseOffset + (avgCurl * 0.2); 
+        
+        const midPalm = landmarks[9]; // ใช้โคนนิ้วกลางเป็นจุดยึดหลัก
+        const bottlePos = {
+          x: midPalm.x + vZ.x * dynamicOffset,
+          y: midPalm.y + vZ.y * dynamicOffset,
+          z: midPalm.z + vZ.z * dynamicOffset
+        };
+
+        const origin = mapPoint(bottlePos.x, bottlePos.y, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
+        
+        // 3. วาดแกนขวด (ขนานกับแกน X)
+        const bottleLen = 0.4;
+        const start3D = {
+          x: bottlePos.x - vX.x * bottleLen/2,
+          y: bottlePos.y - vX.y * bottleLen/2
+        };
+        const end3D = {
+          x: bottlePos.x + vX.x * bottleLen/2,
+          y: bottlePos.y + vX.y * bottleLen/2
+        };
+
+        const start = mapPoint(start3D.x, start3D.y, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
+        const end = mapPoint(end3D.x, end3D.y, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
+
+        // วาดแกนกลางขวด
+        ctx.strokeStyle = "cyan";
+        ctx.lineWidth = 10;
+        ctx.lineCap = "round";
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(end.x, end.y);
+        ctx.stroke();
+        
+        // วาดวงรีจำลองหัวท้ายขวด
+        const drawEndCap = (p) => {
+          ctx.beginPath();
+          ctx.ellipse(p.x, p.y, 30, 15, Math.atan2(vX.y, vX.x), 0, Math.PI * 2);
+          ctx.stroke();
+        };
+        drawEndCap(start);
+        drawEndCap(end);
+        
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = "white";
+        ctx.font = "bold 14px Arial";
+        ctx.fillText("BOTTLE AXIS", origin.x - 40, origin.y - 10);
+      }
+
+      function drawHandOrigin(landmarks, handedness) {
+        const p0 = landmarks[0];
+        const p5 = landmarks[5];
+        const p17 = landmarks[17];
+
         const v1 = { x: p5.x - p0.x, y: p5.y - p0.y, z: p5.z - p0.z };
         const v2 = { x: p17.x - p0.x, y: p17.y - p0.y, z: p17.z - p0.z };
         
         // Normal Vector (Z)
-        const nz_raw = {
+        let nz_raw = {
           x: v1.y * v2.z - v1.z * v2.y,
           y: v1.z * v2.x - v1.x * v2.z,
           z: v1.x * v2.y - v1.y * v2.x
         };
+
+        // --- ฟลิบทิศทางใหม่สำหรับ "มือขวา" เพื่อให้พุ่งออกหน้ามือตามมุมมองกล้อง ---
+        if (handedness === "Right") {
+          nz_raw = { x: -nz_raw.x, y: -nz_raw.y, z: -nz_raw.z };
+        }
+
         const lenZ = Math.sqrt(nz_raw.x**2 + nz_raw.y**2 + nz_raw.z**2);
         const vZ = { x: nz_raw.x/lenZ, y: nz_raw.y/lenZ, z: nz_raw.z/lenZ };
 
-        // 3. แกน X (ขนานกับ 5 -> 17)
+        // แกน X (5 -> 17)
         const vx_raw = { x: p17.x - p5.x, y: p17.y - p5.y, z: p17.z - p5.z };
         const lenX = Math.sqrt(vx_raw.x**2 + vx_raw.y**2 + vx_raw.z**2);
         const vX = { x: vx_raw.x/lenX, y: vx_raw.y/lenX, z: vx_raw.z/lenX };
 
-        // 4. แกน Y (ตั้งฉากกับ X และ Z) - Cross Product อีกรอบ
+        // แกน Y (ตั้งฉากกับ X และ Z)
         const vY = {
           x: vZ.y * vX.z - vZ.z * vX.x,
           y: vZ.z * vX.x - vZ.x * vX.z,
           z: vZ.x * vX.y - vZ.y * vX.x
         };
 
-        // 5. จุดกึ่งกลาง (Origin)
+        // วาดขวดจำลองด้วยวิธี Hybrid
+        drawBottleFrame(landmarks, vX, vY, vZ, "cyan");
+
+        // วาดจุด Origin 
         const mid = {
           x: (p0.x + p5.x + p17.x) / 3,
-          y: (p0.y + p5.y + p17.y) / 3,
-          z: (p0.z + p5.z + p17.z) / 3
+          y: (p0.y + p5.y + p17.y) / 3
         };
-
         const origin = mapPoint(mid.x, mid.y, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
-        const scale = 0.15; // ความยาวแกน
-
-        // ฟังก์ชันช่วยวาดแกน
-        const drawAxis = (v, color, label) => {
-          const target = mapPoint(mid.x + v.x * scale, mid.y + v.y * scale, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 4;
-          ctx.beginPath();
-          ctx.moveTo(origin.x, origin.y);
-          ctx.lineTo(target.x, target.y);
-          ctx.stroke();
-          
-          ctx.fillStyle = color;
-          ctx.font = "bold 16px Arial";
-          ctx.fillText(label, target.x, target.y);
-        };
-
-        // วาดทั้ง 3 แกน
-        drawAxis(vX, "red", "X");      // แกน X - ขนานหน้ามือ
-        drawAxis(vY, "#00ff00", "Y");  // แกน Y - พุ่งไปทางปลายนิ้ว
-        drawAxis(vZ, "dodgerblue", "Z"); // แกน Z - พุ่งออกจากฝ่ามือ (Normal)
-
-        // วาดจุด Origin
         ctx.fillStyle = "white";
         ctx.beginPath();
-        ctx.arc(origin.x, origin.y, 5, 0, Math.PI * 2);
+        ctx.arc(origin.x, origin.y, 4, 0, Math.PI * 2);
         ctx.fill();
+        ctx.fillStyle = "cyan";
+        ctx.fillText(handedness, origin.x - 20, origin.y + 20);
       }
 
       /* -------------------------------------------------------
@@ -274,8 +326,8 @@
             // วาด plane ตรงฝ่ามือ (0, 5, 17)
             drawPalmPlane(landmarks, isRight ? "rgba(0, 255, 0, 0.2)" : "rgba(255, 255, 0, 0.2)");
 
-            // วาดระบบพิกัด 3D Origin (X, Y, Z)
-            drawHandOrigin(landmarks);
+            // วาดระบบพิกัด 3D Origin (X, Y, Z) - พาสค่า handedness ไปด้วย
+            drawHandOrigin(landmarks, results.multiHandedness[index].label);
 
             // HAND_CONNECTIONS is provided by hands.js / drawing_utils.js
             if (typeof HAND_CONNECTIONS !== 'undefined') {
