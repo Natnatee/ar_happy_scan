@@ -161,50 +161,72 @@
         ctx.stroke();
       }
 
-      function drawHandNormal(landmarks) {
+      function drawHandOrigin(landmarks) {
         // 1. จุดอ้างอิงระนาบ
-        const p0 = landmarks[0];  // Wrist
-        const p5 = landmarks[5];  // Index base
+        const p0 = landmarks[0];   // Wrist
+        const p5 = landmarks[5];   // Index base
         const p17 = landmarks[17]; // Pinky base
 
-        // 2. หาเวกเตอร์บนระนาบ
+        // 2. เวกเตอร์ฐาน (Z-Axis / Normal)
         const v1 = { x: p5.x - p0.x, y: p5.y - p0.y, z: p5.z - p0.z };
         const v2 = { x: p17.x - p0.x, y: p17.y - p0.y, z: p17.z - p0.z };
+        
+        // Normal Vector (Z)
+        const nz_raw = {
+          x: v1.y * v2.z - v1.z * v2.y,
+          y: v1.z * v2.x - v1.x * v2.z,
+          z: v1.x * v2.y - v1.y * v2.x
+        };
+        const lenZ = Math.sqrt(nz_raw.x**2 + nz_raw.y**2 + nz_raw.z**2);
+        const vZ = { x: nz_raw.x/lenZ, y: nz_raw.y/lenZ, z: nz_raw.z/lenZ };
 
-        // 3. Cross Product เพื่อหา Normal Vector (ตั้งฉาก)
-        const nx = v1.y * v2.z - v1.z * v2.y;
-        const ny = v1.z * v2.x - v1.x * v2.z;
-        const nz = v1.x * v2.y - v1.y * v2.x;
+        // 3. แกน X (ขนานกับ 5 -> 17)
+        const vx_raw = { x: p17.x - p5.x, y: p17.y - p5.y, z: p17.z - p5.z };
+        const lenX = Math.sqrt(vx_raw.x**2 + vx_raw.y**2 + vx_raw.z**2);
+        const vX = { x: vx_raw.x/lenX, y: vx_raw.y/lenX, z: vx_raw.z/lenX };
 
-        // Normalize (ทำให้ยาวพอเหมาะ)
-        const len = Math.sqrt(nx*nx + ny*ny + nz*nz);
-        const scale = 0.2; // ความยาวเส้น
-        const normal = { x: (nx/len) * scale, y: (ny/len) * scale };
+        // 4. แกน Y (ตั้งฉากกับ X และ Z) - Cross Product อีกรอบ
+        const vY = {
+          x: vZ.y * vX.z - vZ.z * vX.x,
+          y: vZ.z * vX.x - vZ.x * vX.z,
+          z: vZ.x * vX.y - vZ.y * vX.x
+        };
 
-        // 4. จุดกึ่งกลางระนาบ (Origin)
-        const midX = (p0.x + p5.x + p17.x) / 3;
-        const midY = (p0.y + p5.y + p17.y) / 3;
+        // 5. จุดกึ่งกลาง (Origin)
+        const mid = {
+          x: (p0.x + p5.x + p17.x) / 3,
+          y: (p0.y + p5.y + p17.y) / 3,
+          z: (p0.z + p5.z + p17.z) / 3
+        };
 
-        const start = mapPoint(midX, midY, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
-        const end = mapPoint(midX + normal.x, midY + normal.y, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
+        const origin = mapPoint(mid.x, mid.y, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
+        const scale = 0.15; // ความยาวแกน
 
-        // 5. วาดเส้นตั้งฉาก
-        ctx.strokeStyle = "#ff00ff"; // สีชมพูสะท้อนแสง
-        ctx.lineWidth = 5;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(start.x, start.y);
-        ctx.lineTo(end.x, end.y);
-        ctx.stroke();
+        // ฟังก์ชันช่วยวาดแกน
+        const drawAxis = (v, color, label) => {
+          const target = mapPoint(mid.x + v.x * scale, mid.y + v.y * scale, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(origin.x, origin.y);
+          ctx.lineTo(target.x, target.y);
+          ctx.stroke();
+          
+          ctx.fillStyle = color;
+          ctx.font = "bold 16px Arial";
+          ctx.fillText(label, target.x, target.y);
+        };
 
-        // 6. วาดจุดกึ่งกลาง (Pivot)
+        // วาดทั้ง 3 แกน
+        drawAxis(vX, "red", "X");      // แกน X - ขนานหน้ามือ
+        drawAxis(vY, "#00ff00", "Y");  // แกน Y - พุ่งไปทางปลายนิ้ว
+        drawAxis(vZ, "dodgerblue", "Z"); // แกน Z - พุ่งออกจากฝ่ามือ (Normal)
+
+        // วาดจุด Origin
         ctx.fillStyle = "white";
         ctx.beginPath();
-        ctx.arc(start.x, start.y, 6, 0, Math.PI * 2);
+        ctx.arc(origin.x, origin.y, 5, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 2;
-        ctx.stroke();
       }
 
       /* -------------------------------------------------------
@@ -252,8 +274,8 @@
             // วาด plane ตรงฝ่ามือ (0, 5, 17)
             drawPalmPlane(landmarks, isRight ? "rgba(0, 255, 0, 0.2)" : "rgba(255, 255, 0, 0.2)");
 
-            // วาดเส้นตั้งฉากจากระนาบฝ่ามือ
-            drawHandNormal(landmarks);
+            // วาดระบบพิกัด 3D Origin (X, Y, Z)
+            drawHandOrigin(landmarks);
 
             // HAND_CONNECTIONS is provided by hands.js / drawing_utils.js
             if (typeof HAND_CONNECTIONS !== 'undefined') {
