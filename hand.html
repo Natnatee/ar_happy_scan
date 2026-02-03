@@ -57,6 +57,11 @@
       resizeCanvas();
       window.addEventListener("resize", resizeCanvas);
 
+      // --- Smoothing Filter State ---
+      let smoothedHands = []; 
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const ALPHA = 0.4; // ค่าความนิ่ง (0.1-1): ยิ่งเข้าน้อยยิ่งนิ่งแต่จะหน่วงขึ้น
+
       /* -------------------------------------------------------
          Mapping: Mediapipe x,y (0–1) → Pixel on screen
       -------------------------------------------------------- */
@@ -156,6 +161,52 @@
         ctx.stroke();
       }
 
+      function drawHandNormal(landmarks) {
+        // 1. จุดอ้างอิงระนาบ
+        const p0 = landmarks[0];  // Wrist
+        const p5 = landmarks[5];  // Index base
+        const p17 = landmarks[17]; // Pinky base
+
+        // 2. หาเวกเตอร์บนระนาบ
+        const v1 = { x: p5.x - p0.x, y: p5.y - p0.y, z: p5.z - p0.z };
+        const v2 = { x: p17.x - p0.x, y: p17.y - p0.y, z: p17.z - p0.z };
+
+        // 3. Cross Product เพื่อหา Normal Vector (ตั้งฉาก)
+        const nx = v1.y * v2.z - v1.z * v2.y;
+        const ny = v1.z * v2.x - v1.x * v2.z;
+        const nz = v1.x * v2.y - v1.y * v2.x;
+
+        // Normalize (ทำให้ยาวพอเหมาะ)
+        const len = Math.sqrt(nx*nx + ny*ny + nz*nz);
+        const scale = 0.2; // ความยาวเส้น
+        const normal = { x: (nx/len) * scale, y: (ny/len) * scale };
+
+        // 4. จุดกึ่งกลางระนาบ (Origin)
+        const midX = (p0.x + p5.x + p17.x) / 3;
+        const midY = (p0.y + p5.y + p17.y) / 3;
+
+        const start = mapPoint(midX, midY, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
+        const end = mapPoint(midX + normal.x, midY + normal.y, video.videoWidth, video.videoHeight, canvas.width, canvas.height);
+
+        // 5. วาดเส้นตั้งฉาก
+        ctx.strokeStyle = "#ff00ff"; // สีชมพูสะท้อนแสง
+        ctx.lineWidth = 5;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(end.x, end.y);
+        ctx.stroke();
+
+        // 6. วาดจุดกึ่งกลาง (Pivot)
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(start.x, start.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
       /* -------------------------------------------------------
          Mediapipe Hands Setup
       -------------------------------------------------------- */
@@ -171,17 +222,38 @@
       });
 
       hands.onResults((results) => {
+        // อัปเดตข้อมูล landmarks แบบผ่าน Filter
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+          if (smoothedHands.length !== results.multiHandLandmarks.length) {
+            smoothedHands = JSON.parse(JSON.stringify(results.multiHandLandmarks));
+          } else {
+            // Apply Smoothing (EMA)
+            for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+              for (let j = 0; j < results.multiHandLandmarks[i].length; j++) {
+                smoothedHands[i][j].x = lerp(smoothedHands[i][j].x, results.multiHandLandmarks[i][j].x, ALPHA);
+                smoothedHands[i][j].y = lerp(smoothedHands[i][j].y, results.multiHandLandmarks[i][j].y, ALPHA);
+                smoothedHands[i][j].z = lerp(smoothedHands[i][j].z, results.multiHandLandmarks[i][j].z, ALPHA);
+              }
+            }
+          }
+        } else {
+          smoothedHands = [];
+        }
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (!video.videoWidth) return;
 
-        if (results.multiHandLandmarks) {
-          results.multiHandLandmarks.forEach((landmarks, index) => {
+        if (smoothedHands.length > 0) {
+          smoothedHands.forEach((landmarks, index) => {
             const handedness = results.multiHandedness[index].label;
             const isRight = handedness === "Right";
             const color = isRight ? "lime" : "yellow";
             
             // วาด plane ตรงฝ่ามือ (0, 5, 17)
-            drawPalmPlane(landmarks, isRight ? "rgba(0, 255, 0, 0.3)" : "rgba(255, 255, 0, 0.3)");
+            drawPalmPlane(landmarks, isRight ? "rgba(0, 255, 0, 0.2)" : "rgba(255, 255, 0, 0.2)");
+
+            // วาดเส้นตั้งฉากจากระนาบฝ่ามือ
+            drawHandNormal(landmarks);
 
             // HAND_CONNECTIONS is provided by hands.js / drawing_utils.js
             if (typeof HAND_CONNECTIONS !== 'undefined') {
